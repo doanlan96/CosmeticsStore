@@ -18,7 +18,6 @@ func JwtVerify(next http.HandlerFunc) http.HandlerFunc {
 		roleId, _ := util.ParseJwt(cookie.Value)
 
 		if roleId != "1" {
-			//Token is missing, returns with error code 401 Unauthorized
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode("Missing auth token")
 			return

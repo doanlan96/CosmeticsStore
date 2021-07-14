@@ -8,14 +8,14 @@ import (
 func GetCategories() (categories []models.Category) {
 	query, err := database.DB.Query("SELECT * FROM categories")
 	if err != nil {
-		panic(err.Error())
+		err.Error()
 	}
 	defer query.Close()
 	for query.Next() {
 		var category models.Category
 		err := query.Scan(&category.Id, &category.CategoryName)
 		if err != nil {
-			panic(err.Error())
+			err.Error()
 		}
 		categories = append(categories, category)
 	}
@@ -25,13 +25,13 @@ func GetCategories() (categories []models.Category) {
 func GetCategory(id int) (category models.Category) {
 	query, err := database.DB.Query("SELECT * FROM categories WHERE id = ?", id)
 	if err != nil {
-		panic(err.Error())
+		err.Error()
 	}
 	defer query.Close()
 	for query.Next() {
 		err := query.Scan(&category.Id, &category.CategoryName)
 		if err != nil {
-			panic(err.Error())
+			err.Error()
 		}
 	}
 	return category
@@ -40,11 +40,11 @@ func GetCategory(id int) (category models.Category) {
 func CreateCategory(category models.Category) error {
 	stmt, err := database.DB.Prepare("INSERT INTO categories(category_name) VALUES (?)")
 	if err != nil {
-		panic(err.Error())
+		err.Error()
 	}
 	_, err = stmt.Exec(category.CategoryName)
 	if err != nil {
-		panic(err.Error())
+		err.Error()
 	}
 	return err
 }
@@ -52,12 +52,12 @@ func CreateCategory(category models.Category) error {
 func UpdateCategory(category models.Category, id int) error {
 	stmt, err := database.DB.Prepare("UPDATE categories SET category_name=? WHERE id = ?;")
 	if err != nil {
-		panic(err.Error())
+		err.Error()
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(category.CategoryName, id)
 	if err != nil {
-		panic(err.Error())
+		err.Error()
 	}
 	return err
 }
@@ -65,7 +65,7 @@ func UpdateCategory(category models.Category, id int) error {
 func DeleteCategory(id int) error {
 	query, err := database.DB.Query("DELETE FROM categories WHERE id = ?", id)
 	if err != nil {
-		panic(err.Error())
+		err.Error()
 	}
 	defer query.Close()
 	return err

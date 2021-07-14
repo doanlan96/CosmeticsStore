@@ -11,6 +11,7 @@ func Setup(router *mux.Router) {
 
 	//products
 	router.HandleFunc("/api/products", handler.GetProducts).Methods("GET")
+	router.HandleFunc("/api/products/search", handler.SearchProducts).Methods("GET")
 	router.HandleFunc("/api/products/{id}", handler.GetProduct).Methods("GET")
 	router.HandleFunc("/api/products/cate/{category_name}", handler.GetProductByCategoryName).Methods("GET")
 	router.HandleFunc("/api/products/brand/{brand_name}", handler.GetProductByBrandName).Methods("GET")
@@ -23,6 +24,7 @@ func Setup(router *mux.Router) {
 
 	//authentication
 	router.HandleFunc("/api/user", middlewares.LoginVerify(handler.User)).Methods("GET")
+	router.HandleFunc("/api/user", middlewares.LoginVerify(handler.UserProfile)).Methods("PUT")
 	router.HandleFunc("/api/register", handler.Register).Methods("POST")
 	router.HandleFunc("/api/login", handler.Login).Methods("POST")
 	router.HandleFunc("/api/logout", handler.Logout).Methods("POST")

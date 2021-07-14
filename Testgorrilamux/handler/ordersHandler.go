@@ -23,7 +23,7 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	var order models.Order
 	json.Unmarshal(body, &order)
@@ -39,7 +39,7 @@ func CreateOrderItem(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	var orderItem models.OrderItem
 	json.Unmarshal(body, &orderItem)
@@ -65,7 +65,7 @@ func UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(params["id"])
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	var order models.Order
 	json.Unmarshal(body, &order)
