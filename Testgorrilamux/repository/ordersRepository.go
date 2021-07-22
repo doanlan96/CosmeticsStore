@@ -14,6 +14,8 @@ func GetOrderItems() (orderItems []models.OrderItem) {
 	for query.Next() {
 		var orderItem models.OrderItem
 		err := query.Scan(&orderItem.Id, &orderItem.UserId, &orderItem.ProductId, &orderItem.Quantity, &orderItem.IsPaid)
+		orderItem.Product = GetProduct(int(orderItem.ProductId))
+		orderItem.User = GetUser(int(orderItem.UserId))
 		if err != nil {
 			err.Error()
 		}

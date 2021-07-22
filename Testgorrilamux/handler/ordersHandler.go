@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"Testgorillamux/database"
 	"Testgorillamux/models"
 	"Testgorillamux/repository"
 	"Testgorillamux/util"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -32,9 +34,26 @@ func GetOrderItemsByUserId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	id, _ := strconv.Atoi(params["id"])
-	result := repository.GetOrderItemsByUserId(id)
-	json.NewEncoder(w).Encode(result)
+	orders, _ := database.DB.Query("SELECT * FROM order_items where user_id = ?", id)
+	var orderItems []models.OrderItem
+	for orders.Next() {
+		var order models.OrderItem
+		orders.Scan(&order.Id, &order.UserId, &order.ProductId, &order.Quantity, &order.IsPaid)
+		order.Product = getProduct(order.ProductId)
+		orderItems = append(orderItems, order)
+	}
+	json.NewEncoder(w).Encode(orderItems)
 }
+
+func getProduct(id uint) models.Product {
+	rows, _ := database.DB.Query("SELECT * FROM products where id = ?", id)
+	var product models.Product
+	for rows.Next() {
+		rows.Scan(&product.Id, &product.ProductName, &product.Description, &product.Price, &product.Image, &product.IsHot, &product.CategoryId, &product.BrandId, &product.NumberAvailable)
+	}
+	return product
+}
+
 
 func CreateOrderItem(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -83,6 +102,40 @@ func UpdateOrderItem(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(orderItem)
 	fmt.Fprintf(w, "order with ID = %s was updated", params["id"])
+}
+
+func UpSertOrder(w http.ResponseWriter, r *http.Request)  {
+	w.Header().Set("Content-Type", "application/json")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err.Error()
+	}
+	var data map[string]int
+	json.Unmarshal(body, &data)
+	var quantity uint
+	order := database.DB.QueryRow("SELECT quantity FROM order_items WHERE user_id = ? AND product_id = ?", data["user_id"], data["product_id"])
+	err = order.Scan(&quantity)
+	if err == sql.ErrNoRows {
+		if data["replace"] > 0 {
+			database.DB.Exec("INSERT INTO order_items(user_id, product_id, quantity, is_paid, total) values (?, ?, ?, ?, ?)",data["user_id"], data["product_id"], data["replace"], data["is_paid"] )
+			return
+		}
+		if data["quantity"] > 0 {
+			database.DB.Exec("INSERT INTO order_items(user_id, product_id, quantity, is_paid) values (?, ?, ?, ?)",data["user_id"], data["product_id"], data["quantity"], data["is_paid"] )
+			return
+		}
+
+	}
+	if data["replace"] == 0 && data["quantity"] != 0{
+		fmt.Println(data["quantity"])
+		if int(quantity) <= data["quantity"] {
+			quantity = uint(data["quantity"])
+		}
+		_, err = database.DB.Exec("UPDATE order_items SET quantity = ? WHERE user_id = ? AND product_id = ?", int(quantity) + data["quantity"], data["user_id"], data["product_id"])
+		return
+	}
+	_, err = database.DB.Exec("UPDATE order_items SET quantity = ? WHERE user_id = ? AND product_id = ?", data["replace"], data["user_id"], data["product_id"])
+	return
 }
 
 func DeleteOrderItem(w http.ResponseWriter, r *http.Request) {
